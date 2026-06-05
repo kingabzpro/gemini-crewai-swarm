@@ -1,27 +1,6 @@
-# Core multi-agent framework
-crewai>=1.0.0
-crewai-tools>=1.0.0
-
-# Google Gen AI SDK (the modern, maintained SDK as of late 2025)
-# Note: the older `google-generativeai` package reached end-of-life on
-# Nov 30, 2025. Use `google-genai` instead.
-google-genai>=1.0.0
-
-# Official Gemini integration for LiteLLM (used under the hood by CrewAI)
-litellm>=1.50.0
-
-# Securely load API keys from a local .env file
-python-dotenv>=1.0.0
-
-# Jupyter notebook kernel
-ipykernel>=6.29.0
-
-# Lets CrewAI's synchronous kickoff() run inside a notebook kernel
-# (Jupyter / Colab / VS Code interactive window), which already has
-# an asyncio event loop running.  See the troubleshooting section
-# of the notebook for details.
-nest-asyncio>=1.6.0
-
-# Olostep Web Data API (Python SDK) — powers the Researcher's live
-# web search and scrape tools. Python 3.11+ required.
-olostep>=1.0.0
+crewai==1.14.6
+crewai-tools==1.14.6
+google-genai==2.8.0
+litellm==1.87.1
+olostep==1.1.0
+nest-asyncio==1.6.0

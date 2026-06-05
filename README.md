@@ -1,203 +1,197 @@
-# Build an Agent Swarm with CrewAI and Gemini 3.5 Flash
+# CrewAI + Gemini Agent Swarm
 
-A beginner-friendly, end-to-end Jupyter notebook that walks you through building a small **multi-agent swarm** with [CrewAI](https://docs.crewai.com/) powered by [Google Gemini 3.5 Flash](https://deepmind.google/models/gemini/flash/).
+> A hierarchical multi-agent writing workflow powered by CrewAI, Gemini, and live Olostep web research.
 
-Four cooperating agents — a **Researcher**, a **Writer**, a **Reviewer**, and a **Coordinator** — take a single topic, do research on it, draft a blog post, polish it, and hand you a final article.
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![CrewAI](https://img.shields.io/badge/CrewAI-1.14.6-FF5A50)](https://docs.crewai.com/)
+[![Gemini](https://img.shields.io/badge/Gemini-3.5_Flash-4285F4?logo=google)](https://ai.google.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
----
+This project demonstrates how to build a practical hierarchical agent swarm in a Jupyter notebook. A manager coordinates three specialist agents that research a topic, write an educational article, and polish it for publication.
 
-## What's in this repo
+## How It Works
 
-| File | Purpose |
+```mermaid
+flowchart TD
+    U[Topic] --> M[Content Coordinator]
+    M -->|Delegates research| R[Researcher]
+    R -->|Sourced findings| M
+    M -->|Delegates writing| W[Writer]
+    W -->|Article draft| M
+    M -->|Delegates review| E[Reviewer]
+    E -->|Final article| M
+    M --> O[Publication-ready Markdown]
+```
+
+| Agent | Responsibility |
 | --- | --- |
-| `Build_Agent_Swarm_with_CrewAI_and_Gemini_Flash.ipynb` | The complete guided tutorial. Open in Jupyter / VS Code / Colab. |
-| `requirements.txt` | Pinned Python dependencies (`crewai`, `google-genai`, `litellm`, `python-dotenv`, `ipykernel`). |
-| `.env.example` | Template for your `.env` file — copy this and fill in your Gemini API key. |
-| `.gitignore` | Standard Python / Jupyter ignores (your `.env` is already excluded). |
+| **Content Coordinator** | Manages the hierarchical workflow, delegates tasks, and validates results. |
+| **Researcher** | Searches the live web and gathers sourced evidence within a strict call budget. |
+| **Writer** | Turns research into one structured educational article. |
+| **Reviewer** | Checks accuracy, clarity, organization, links, and final formatting. |
+
+The crew uses `Process.hierarchical`. The manager is configured separately and is not included in the worker list.
+
+## Workflow
+
+The manager delegates three tasks:
+
+1. **Research:** Collect sourced findings and likely reader questions.
+2. **Write:** Produce one complete Markdown article.
+3. **Review:** Return the corrected article as the final result.
+
+There is no separate formatting task, article wrapper, or Key Takeaways output.
+
+## Article Format
+
+The final article is approximately 1,000-1,500 words and contains:
+
+1. One descriptive H1 title
+2. An unlabeled italic summary directly below the title
+3. A `TL;DR` section with 3-5 bullets
+4. A concise introduction
+5. Clear H2/H3 body sections
+6. A table only when it genuinely improves a comparison or decision
+7. A conclusion
+8. An FAQ section with 3-5 questions immediately after the conclusion
+
+The structure is inspired by clear educational technology publications such as DataCamp, while keeping the writing and organization original.
+
+## Controlled Web Research
+
+The Researcher uses a custom `olostep_web_search` CrewAI tool and decides whether each call needs page scraping:
+
+| Option | Result |
+| --- | --- |
+| `scrape=False` | Returns titles, URLs, and descriptions for quick discovery. |
+| `scrape=True` | Also returns page Markdown for detailed verification. |
+
+To prevent runaway research, the tool enforces:
+
+- Maximum **3** discovery calls with `scrape=False`
+- Maximum **6** external search calls overall
+- Maximum **3** results per call
+- Maximum **4,000 characters** of scraped content per page
+
+After three discovery calls, the agent must use targeted scraping or finish with the evidence already collected.
+
+## Execution Trace
+
+The notebook finishes with a detailed swarm trace showing:
+
+- manager and worker roles;
+- hierarchical coordination flow;
+- total web calls and remaining budget;
+- calls with and without scraping;
+- queries, status, result counts, and domain filters;
+- task owners and participating agents;
+- delegation and tool-use counts;
+- tool errors and task duration;
+- output previews and per-agent participation.
+
+## Project Files
+
+| File | Description |
+| --- | --- |
+| `Build_Agent_Swarm_with_CrewAI_and_Gemini_Flash.ipynb` | Main tutorial and executable workflow. |
+| `requirements.txt` | Pinned Python dependencies. |
+| `.env.example` | API-key variable reference. |
+| `.gitignore` | Excludes local secrets, environments, and generated files. |
 | `LICENSE` | MIT license. |
 
----
+## Requirements
 
-## Quick start
+- Python 3.11 or newer
+- [Google AI Studio API key](https://aistudio.google.com/app/apikey)
+- [Olostep API key](https://www.olostep.com/dashboard/)
+- Deepnote, Jupyter, or VS Code with the Jupyter extension
 
-### 1. Clone and set up a virtual environment
+## Quick Start
+
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/crewai-gemini-agent-swarm.git
-cd crewai-gemini-agent-swarm
+git clone https://github.com/kingabzpro/gemini-crewai-swarm.git
+cd gemini-crewai-swarm
+```
 
+### 2. Create an environment
+
+```bash
 python -m venv .venv
-# macOS / Linux
+```
+
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+macOS or Linux:
+
+```bash
 source .venv/bin/activate
-# Windows (PowerShell)
-.venv\Scripts\Activate.ps1
 ```
 
-### 2. Install dependencies
+### 3. Install dependencies
 
 ```bash
-pip install -U -r requirements.txt
+python -m pip install -U -r requirements.txt
 ```
 
-> CrewAI also supports the [uv](https://docs.astral.sh/uv/) package manager — if you have it installed, you can run `uv pip install -r requirements.txt` instead.
+### 4. Configure API keys
 
-### 3. Get a Gemini API key (free)
+The notebook reads keys from its process environment.
 
-1. Go to <https://aistudio.google.com/app/apikey>.
-2. Click **Create API key** and copy the value.
-3. (Optional but recommended) Get a free **Olostep** API key at <https://www.olostep.com/dashboard/> so the Researcher agent can search and scrape the live web.
-4. Copy the env template and paste your key(s) in:
+PowerShell:
 
-   ```bash
-   cp .env.example .env       # macOS / Linux
-   copy .env.example .env     # Windows
-   ```
+```powershell
+$env:GEMINI_API_KEY="your-gemini-key"
+$env:OLOSTEP_API_KEY="your-olostep-key"
+```
 
-   Then edit `.env` so it reads:
-
-   ```dotenv
-   GEMINI_API_KEY=your-real-gemini-key
-   OLOSTEP_API_KEY=your-real-olostep-key    # optional
-   ```
-
-   > Either `GEMINI_API_KEY` *or* `GOOGLE_API_KEY` works — CrewAI reads both. See the [LLMs docs](https://docs.crewai.com/en/concepts/llms#setting-up-your-llm).
-
-### 4. Run the notebook
+macOS or Linux:
 
 ```bash
-jupyter notebook Build_Agent_Swarm_with_CrewAI_and_Gemini_Flash.ipynb
+export GEMINI_API_KEY="your-gemini-key"
+export OLOSTEP_API_KEY="your-olostep-key"
 ```
 
-Or open it directly in VS Code with the Jupyter extension. Every cell runs top-to-bottom with no manual edits required.
+`GOOGLE_API_KEY` can be used instead of `GEMINI_API_KEY`.
 
-#### Alternative: Google Colab
+For Deepnote, add `GEMINI_API_KEY` and `OLOSTEP_API_KEY` through the project environment-variable or integration settings before running the notebook.
 
-You can also upload the notebook to [Google Colab](https://colab.research.google.com/). The install cell uses `%pip`, which Colab supports natively; the only extra step is to set the `GEMINI_API_KEY` via `os.environ` or Colab's "Secrets" panel (the notebook will prompt you to set it).
+### 5. Run the notebook
 
----
+Open `Build_Agent_Swarm_with_CrewAI_and_Gemini_Flash.ipynb` and run its cells from top to bottom.
 
-## What the notebook covers
-
-1. Title and short intro
-2. What we are building
-3. Architecture overview (with a Mermaid diagram of the agent swarm)
-4. Installing the dependencies
-5. Setting up API keys securely with `python-dotenv`
-6. Configuring **Gemini 3.5 Flash** with CrewAI
-7. Creating the four agents (Researcher, Writer, Reviewer, Manager)
-8. Defining a `Task` for each agent with clear `expected_output` contracts
-9. Building the `Crew` workflow
-10. Running the swarm on the example topic **"The benefits of local-first AI agents"**
-11. Displaying and walking through the final output
-12. Error-handling tips and a robust `run_crew_safely()` wrapper
-13. Optional improvements: save to file, add tools, enable memory, switch to `Process.hierarchical`, mix-and-match models
-14. Conclusion and next steps
-
----
-
-## A note on the model name
-
-The title of this guide says **"Gemini 3.5 Flash"** because that is the current Flash-tier name on Google's official [DeepMind Gemini Flash page](https://deepmind.google/models/gemini/flash/) and the official [Gemini API × CrewAI example](https://ai.google.dev/gemini-api/docs/crewai-example).
-
-The exact model string we pass to CrewAI is:
+## Core Configuration
 
 ```python
-"gemini/gemini-3.5-flash"
+crew = Crew(
+    agents=[researcher, writer, reviewer],
+    tasks=[research_task, write_task, review_task],
+    manager_agent=manager,
+    process=Process.hierarchical,
+    verbose=True,
+)
 ```
 
-The leading `gemini/` prefix is required by [LiteLLM](https://docs.litellm.ai/docs/providers/gemini), the routing layer CrewAI uses to talk to Google AI Studio. If Google rotates the Flash model name in the future, change **only this one string** — for example:
+The shared Gemini model is configured as:
 
-- `gemini/gemini-3.5-flash` — current default
-- `gemini/gemini-2.5-flash` — previous stable Flash
-- `gemini/gemini-2.0-flash` — older, paid tier only
-
-The Google team also recommends a **`temperature=1.0`** for Gemini 3 family models; the notebook uses that value.
-
----
-
-## Project structure
-
-```
-crewai-gemini-agent-swarm/
-├── Build_Agent_Swarm_with_CrewAI_and_Gemini_Flash.ipynb   ← start here
-├── README.md                                              ← you are here
-├── requirements.txt
-├── .env.example
-├── .gitignore
-└── LICENSE
+```python
+GEMINI_MODEL = "gemini/gemini-3.5-flash"
 ```
 
----
+If that model is unavailable to your API key, replace it with a supported Gemini model.
 
 ## Troubleshooting
 
-| Symptom | Fix |
+| Problem | Resolution |
 | --- | --- |
-| `RuntimeError: No Gemini API key found` | Make sure `.env` exists in the notebook's CWD (or one level above) and the value is your **real** key, not the placeholder. |
-| `litellm.AuthenticationError` | Your key is invalid, revoked, or restricted. Create a new one at <https://aistudio.google.com/app/apikey>. |
-| `404 models/gemini-3.5-flash not found` | Google renamed the model. Try `gemini/gemini-2.5-flash` instead, or check the [Gemini models page](https://ai.google.dev/gemini-api/docs/models). |
-| `litellm.BadRequestError ... models/...` | You have **two** `gemini/` prefixes in the model name. Use exactly `gemini/gemini-3.5-flash`. See [crewAI#2645](https://github.com/crewAIInc/crewAI/issues/2645). |
-| `ModuleNotFoundError: google.generativeai` | You installed the legacy SDK. Run `pip install -U google-genai` — the legacy package was retired on **30 Nov 2025**. |
-| `RuntimeError: Agent execution was invoked synchronously ... event loop` | Jupyter / Colab / VS Code interactive window already runs an asyncio loop, and CrewAI tried to start another. | `pip install nest-asyncio` and call `nest_asyncio.apply()` once before `crew.kickoff()` (the notebook does this for you). |
-| `Olostep search error: OlostepServerError_AuthFailed` | `OLOSTEP_API_KEY` is missing or wrong. | Generate a free key at <https://www.olostep.com/dashboard/> and add it to `.env`. The Olostep tools are skipped automatically if the key is missing. |
-| Agents produce empty / very short answers | Lower `temperature` to `0.3-0.5` and make the `expected_output` strings more specific. |
-| Want to see what's going over the wire | Add `os.environ["LITELLM_LOG"] = "DEBUG"` (and optionally `litellm._turn_on_debug()`) before `crew.kickoff()`. |
-
----
-
-## Docs checked
-
-The code and instructions in this repo were verified against the following official sources.
-
-### CrewAI
-
-- [CrewAI docs home](https://docs.crewai.com/) — overview, concepts, and CLI.
-- [CrewAI quickstart](https://docs.crewai.com/en/quickstart) — installation and first project.
-- [LLMs / Google Gemini integration](https://docs.crewai.com/en/concepts/llms) — the `gemini/...` model string, `LLM(model=...)` API, and env-var requirements.
-- [Agents concept guide](https://docs.crewai.com/en/concepts/agents) — `role`, `goal`, `backstory`, `llm`, `allow_delegation`.
-- [Tasks & Processes](https://docs.crewai.com/en/concepts/tasks) and [Processes](https://docs.crewai.com/en/concepts/processes) — `Task` contract, `context=[...]`, `Process.sequential` vs `Process.hierarchical`, `manager_llm`.
-- [CrewAI tools catalogue](https://docs.crewai.com/en/concepts/tools) — `SerperDevTool`, `FileReadTool`, etc.
-- [GitHub: crewAIInc/crewAI](https://github.com/crewAIInc/crewAI) and the related [bug #2645](https://github.com/crewAIInc/crewAI/issues/2645) on the `models/` double-prefix gotcha.
-
-### Google AI / Gemini
-
-- [Gemini API + CrewAI example (Google)](https://ai.google.dev/gemini-api/docs/crewai-example) — the official end-to-end sample this guide is patterned on.
-- [Gemini API models](https://ai.google.dev/gemini-api/docs/models) — the canonical list of model strings.
-- [DeepMind Gemini Flash](https://deepmind.google/models/gemini/flash/) — confirms the current **Gemini 3.5 Flash** naming.
-- [Get a Gemini API key](https://aistudio.google.com/app/apikey) — where to generate the key used in `.env`.
-- [Google Gen AI Python SDK on GitHub](https://github.com/googleapis/python-genai) — the modern, maintained SDK (`pip install google-genai`).
-- [Google Gen AI SDK on PyPI](https://pypi.org/project/google-genai/) — install instructions.
-- [Gemini API libraries overview](https://ai.google.dev/gemini-api/docs/libraries) — confirms the legacy `google-generativeai` package was retired on **30 Nov 2025** in favour of `google-genai`.
-
-### LiteLLM (the routing layer used by CrewAI)
-
-- [LiteLLM — Gemini provider](https://docs.litellm.ai/docs/providers/gemini) — model strings, env vars, advanced options.
-- [LiteLLM — Vertex AI](https://docs.litellm.ai/docs/providers/vertex) — alternative Vertex-AI-backed setup.
-
-### Olostep (live web search + scrape for the Researcher)
-
-- [Olostep docs home](https://docs.olostep.com/) — overview of the Web Data API.
-- [Olostep Python SDK](https://docs.olostep.com/sdks/python) — install, sync/async clients, error hierarchy, retry strategy.
-- [Search API](https://docs.olostep.com/features/search) and [Create Search reference](https://docs.olostep.com/api-reference/searches/create) — used by `OlostepSearchTool` (supports inline `scrape_options`).
-- [Scrape API](https://docs.olostep.com/features/scrapes) and [Create Scrape reference](https://docs.olostep.com/api-reference/scrapes/create) — used by `OlostepScrapeTool`.
-- [Authentication](https://docs.olostep.com/get-started/authentication) — `OLOSTEP_API_KEY` setup.
-
----
-
-## Extending the swarm
-
-The notebook ends with five plug-and-play upgrades:
-
-1. **Save the final post** to a markdown file in `output/`.
-2. **Add a tool** — the notebook already ships with two custom Olostep tools (`olostep_web_search` and `olostep_scrape_url`) attached to the Researcher. You can swap them for any other [CrewAI tool](https://docs.crewai.com/en/concepts/tools) such as `SerperDevTool` or `WebsiteSearchTool`.
-3. **Enable shared memory** (`memory=True` on the `Crew`).
-4. **Switch to hierarchical mode** (`Process.hierarchical` + `manager_llm`).
-5. **Mix models per agent** (e.g. Gemini 2.5 Pro for research, Gemini 3.5 Flash for the rest).
-
-Each one is a small code change — the rest of the swarm keeps working as-is.
-
----
-
-## License
-
-MIT. See [`LICENSE`](./LICENSE).
+| Gemini API key is missing | Set `GEMINI_API_KEY` or `GOOGLE_API_KEY`, then restart the kernel. |
+| Olostep API key is missing | Set `OLOSTEP_API_KEY`, then restart the kernel. |
+| Gemini returns `404` | Change `GEMINI_MODEL` to a model available to your account. |
+| `olostep` cannot be imported | Run `python -m pip install -U olostep`. |
+| Notebook event-loop error | Install `nest-asyncio` and run the included `nest_asyncio.apply()` cell. |
+| Imports use the wrong environment | Select the project virtual environment as the notebook kernel. |
