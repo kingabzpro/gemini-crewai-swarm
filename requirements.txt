@@ -1,0 +1,17 @@
+# Core multi-agent framework
+crewai>=1.0.0
+crewai-tools>=1.0.0
+
+# Google Gen AI SDK (the modern, maintained SDK as of late 2025)
+# Note: the older `google-generativeai` package reached end-of-life on
+# Nov 30, 2025. Use `google-genai` instead.
+google-genai>=1.0.0
+
+# Official Gemini integration for LiteLLM (used under the hood by CrewAI)
+litellm>=1.50.0
+
+# Securely load API keys from a local .env file
+python-dotenv>=1.0.0
+
+# Jupyter notebook kernel
+ipykernel>=6.29.0
