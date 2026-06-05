@@ -15,3 +15,13 @@ python-dotenv>=1.0.0
 
 # Jupyter notebook kernel
 ipykernel>=6.29.0
+
+# Lets CrewAI's synchronous kickoff() run inside a notebook kernel
+# (Jupyter / Colab / VS Code interactive window), which already has
+# an asyncio event loop running.  See the troubleshooting section
+# of the notebook for details.
+nest-asyncio>=1.6.0
+
+# Olostep Web Data API (Python SDK) — powers the Researcher's live
+# web search and scrape tools. Python 3.11+ required.
+olostep>=1.0.0

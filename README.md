@@ -45,7 +45,8 @@ pip install -U -r requirements.txt
 
 1. Go to <https://aistudio.google.com/app/apikey>.
 2. Click **Create API key** and copy the value.
-3. Copy the env template and paste your key in:
+3. (Optional but recommended) Get a free **Olostep** API key at <https://www.olostep.com/dashboard/> so the Researcher agent can search and scrape the live web.
+4. Copy the env template and paste your key(s) in:
 
    ```bash
    cp .env.example .env       # macOS / Linux
@@ -55,7 +56,8 @@ pip install -U -r requirements.txt
    Then edit `.env` so it reads:
 
    ```dotenv
-   GEMINI_API_KEY=your-real-key-here
+   GEMINI_API_KEY=your-real-gemini-key
+   OLOSTEP_API_KEY=your-real-olostep-key    # optional
    ```
 
    > Either `GEMINI_API_KEY` *or* `GOOGLE_API_KEY` works — CrewAI reads both. See the [LLMs docs](https://docs.crewai.com/en/concepts/llms#setting-up-your-llm).
@@ -136,6 +138,8 @@ crewai-gemini-agent-swarm/
 | `404 models/gemini-3.5-flash not found` | Google renamed the model. Try `gemini/gemini-2.5-flash` instead, or check the [Gemini models page](https://ai.google.dev/gemini-api/docs/models). |
 | `litellm.BadRequestError ... models/...` | You have **two** `gemini/` prefixes in the model name. Use exactly `gemini/gemini-3.5-flash`. See [crewAI#2645](https://github.com/crewAIInc/crewAI/issues/2645). |
 | `ModuleNotFoundError: google.generativeai` | You installed the legacy SDK. Run `pip install -U google-genai` — the legacy package was retired on **30 Nov 2025**. |
+| `RuntimeError: Agent execution was invoked synchronously ... event loop` | Jupyter / Colab / VS Code interactive window already runs an asyncio loop, and CrewAI tried to start another. | `pip install nest-asyncio` and call `nest_asyncio.apply()` once before `crew.kickoff()` (the notebook does this for you). |
+| `Olostep search error: OlostepServerError_AuthFailed` | `OLOSTEP_API_KEY` is missing or wrong. | Generate a free key at <https://www.olostep.com/dashboard/> and add it to `.env`. The Olostep tools are skipped automatically if the key is missing. |
 | Agents produce empty / very short answers | Lower `temperature` to `0.3-0.5` and make the `expected_output` strings more specific. |
 | Want to see what's going over the wire | Add `os.environ["LITELLM_LOG"] = "DEBUG"` (and optionally `litellm._turn_on_debug()`) before `crew.kickoff()`. |
 
@@ -170,6 +174,14 @@ The code and instructions in this repo were verified against the following offic
 - [LiteLLM — Gemini provider](https://docs.litellm.ai/docs/providers/gemini) — model strings, env vars, advanced options.
 - [LiteLLM — Vertex AI](https://docs.litellm.ai/docs/providers/vertex) — alternative Vertex-AI-backed setup.
 
+### Olostep (live web search + scrape for the Researcher)
+
+- [Olostep docs home](https://docs.olostep.com/) — overview of the Web Data API.
+- [Olostep Python SDK](https://docs.olostep.com/sdks/python) — install, sync/async clients, error hierarchy, retry strategy.
+- [Search API](https://docs.olostep.com/features/search) and [Create Search reference](https://docs.olostep.com/api-reference/searches/create) — used by `OlostepSearchTool` (supports inline `scrape_options`).
+- [Scrape API](https://docs.olostep.com/features/scrapes) and [Create Scrape reference](https://docs.olostep.com/api-reference/scrapes/create) — used by `OlostepScrapeTool`.
+- [Authentication](https://docs.olostep.com/get-started/authentication) — `OLOSTEP_API_KEY` setup.
+
 ---
 
 ## Extending the swarm
@@ -177,7 +189,7 @@ The code and instructions in this repo were verified against the following offic
 The notebook ends with five plug-and-play upgrades:
 
 1. **Save the final post** to a markdown file in `output/`.
-2. **Add a tool** like `SerperDevTool` to give the researcher live web access.
+2. **Add a tool** — the notebook already ships with two custom Olostep tools (`olostep_web_search` and `olostep_scrape_url`) attached to the Researcher. You can swap them for any other [CrewAI tool](https://docs.crewai.com/en/concepts/tools) such as `SerperDevTool` or `WebsiteSearchTool`.
 3. **Enable shared memory** (`memory=True` on the `Crew`).
 4. **Switch to hierarchical mode** (`Process.hierarchical` + `manager_llm`).
 5. **Mix models per agent** (e.g. Gemini 2.5 Pro for research, Gemini 3.5 Flash for the rest).
