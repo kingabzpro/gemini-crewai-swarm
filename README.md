@@ -5,6 +5,7 @@
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![CrewAI](https://img.shields.io/badge/CrewAI-1.14.6-FF5A50)](https://docs.crewai.com/)
 [![Gemini](https://img.shields.io/badge/Gemini-3.5_Flash-4285F4?logo=google)](https://ai.google.dev/)
+[![Olostep](https://img.shields.io/badge/Olostep-Live_Web_Research-6C5CE7)](https://www.olostep.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 This project demonstrates how to build a practical hierarchical agent swarm in a Jupyter notebook. A manager coordinates three specialist agents that research a topic, write an educational article, and polish it for publication.
